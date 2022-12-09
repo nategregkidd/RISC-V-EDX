@@ -46,8 +46,42 @@
    
    // YOUR CODE HERE
    
+   //PROGRAM COUNTER MODULE
    $next_pc[31:0] = $reset ? 0 : $pc + 1 ;
    $pc[31:0] = >>1$next_pc ;
+   
+   
+   //INSTRUCTION MEMORY MODULE (instruction-fetch)
+   `READONLY_MEM($pc, $$instr[31:0])
+   
+   
+   //DECODER MODULE
+   // R: 01011; 01100; 01110; 10100
+   // I: 00000; 00001; 00100; 00110; 11001
+   // S: 01000; 01001; 11000; 
+   // B: 11000;
+   // U: 00101; 01101
+   // J: 11011
+   $is_r_instr = $instr[6:2] == 5'b01011 || $instr[6:2] == 5'b01100 || $instr[6:2] == 5'b01110 || $instr[6:2] == 5'b10100 ;
+   $is_i_instr = $instr[6:2] == 5'b00000 || $instr[6:2] == 5'b00001 || $instr[6:2] == 5'b00100 || $instr[6:2] == 5'b00110 || $instr[6:2] == 5'b11001 ;
+   $is_s_instr = $instr[6:2] == 5'b01000 || $instr[6:2] == 5'b01001 || $instr[6:2] == 5'b11000 ;
+   $is_b_instr = $instr[6:2] == 5'b11000 ;
+   $is_u_instr = $instr[6:2] ==? 5'b0x101 ;
+   $is_j_instr = $instr[6:2] == 5'b11011 ;
+   
+   // Extracting fields
+   $opcode[6:0] = $instr[6:0] ;
+   $rd[4:0] = $instr[11:7] ;
+   $funct3[2:0] = $instr[14:12] ;
+   $rs1[4:0] = $instr[19:15] ;
+   $rs2[4:0] = $instr[24:20] ;
+   
+   // Checking validity of fields (which fields belong to which op type)
+   $rs2_valid = $is_r_instr || $is_s_instr || $is_b_instr ;
+   
+   
+   
+   
    
    
    // Assert these to end simulation (before Makerchip cycle limit).

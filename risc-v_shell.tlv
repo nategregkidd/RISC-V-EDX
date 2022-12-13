@@ -77,13 +77,33 @@
    $rs2[4:0] = $instr[24:20] ;
    
    // Checking validity of fields (which fields belong to which op type)
+   // rs1:    R I S B
+   // rs2:    R S B
+   // rd:     R I U J
+   // funct3: R I S B
+   // opcode: RISBUJ (all)
+   $rs1_valid = $is_r_instr || $is_i_instr || $is_s_instr || $is_b_instr ;
    $rs2_valid = $is_r_instr || $is_s_instr || $is_b_instr ;
+   $rd_valid = $is_r_instr || $is_i_instr || $is_u_instr || $is_j_instr ;
+   $funct3_valid = $is_r_instr || $is_i_instr || $is_s_instr || $is_b_instr ;
+   $imm_valid = $is_i_instr || $is_s_instr || $is_b_instr || $is_u_instr || $is_j_instr ;
+   
+   //immediate value construction based on instruction type
+   //look up immediate values for RISC-V for more information
+   //expand the instruction according to the type of instruction (RISBUJ)
+   $imm[31:0] = $is_i_instr ? { {21{$instr[31]}}, $instr[30:20] } :
+                $is_s_instr ? { {21{$instr[31]}}, $instr[30:25], $instr[11:8], $instr[7] } :
+                $is_b_instr ? { {20{$instr[31]}}, $instr[7], $instr[30:25], $instr[11:8], 1'b0 }:
+                $is_u_instr ? { $instr[31], $instr[30:20], $instr[19:12], 12'b0 } :
+                $is_j_instr ? { {11{$instr[31]}}, $instr[19:12], $instr[20], $instr[30:25], $instr[24:21], 2'b0 } :
+                32'b0 ;
    
    
    
    
    
    
+   `BOGUS_USE($opcode $rd $rd_valid $rs1 $rs1_valid $rs2 $rs2_valid $funct3 $funct3_valid $imm_valid) ;
    // Assert these to end simulation (before Makerchip cycle limit).
    *passed = 1'b0;
    *failed = *cyc_cnt > M4_MAX_CYC;
